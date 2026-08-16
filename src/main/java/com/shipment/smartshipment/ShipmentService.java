@@ -12,5 +12,9 @@ public class ShipmentService {
    public  Shipment createShipment(Shipment shipment) {
         return shipmentRepository.save(shipment);
     }
+    public Shipment getShipmentById(Long id){
+       return shipmentRepository.findById(id)
+               .orElseThrow(() -> new RuntimeException("Shipment not found with id :" +id));
+    }
 }
 
