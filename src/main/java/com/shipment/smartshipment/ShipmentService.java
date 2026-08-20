@@ -4,6 +4,7 @@ import com.shipment.smartshipment.entity.Shipment;
 import com.shipment.smartshipment.repository.ShipmentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import com.shipment.smartshipment.exception.ShipmentNotFoundException;
 
 
 
@@ -18,7 +19,8 @@ public class ShipmentService {
     }
     public Shipment getShipmentById(Long id){
        return shipmentRepository.findById(id)
-               .orElseThrow(() -> new RuntimeException("Shipment not found with id :" +id));
+               .orElseThrow(() ->
+                       new ShipmentNotFoundException("Shipment not found with id: " + id));
     }
     public List<Shipment> getAllShipments(){
        return shipmentRepository.findAll();
@@ -26,7 +28,7 @@ public class ShipmentService {
     public void deleteShipment(Long id) {
 
         if (!shipmentRepository.existsById(id)) {
-            throw new RuntimeException("Shipment not found with id :" + id);
+            throw new  ShipmentNotFoundException("Shipment not found with id :" + id);
         }
 
         shipmentRepository.deleteById(id);
@@ -35,7 +37,7 @@ public class ShipmentService {
 
         Shipment existingShipment = shipmentRepository.findById(id)
                 .orElseThrow(() ->
-                        new RuntimeException("Shipment not found with id :" + id));
+                        new ShipmentNotFoundException("Shipment not found with id: " + id));
 
         existingShipment.setTrackingNumber(updatedShipment.getTrackingNumber());
         existingShipment.setSenderName(updatedShipment.getSenderName());
