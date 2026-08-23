@@ -3,6 +3,7 @@ package com.shipment.smartshipment.controller;
 
 import com.shipment.smartshipment.ShipmentService;
 import com.shipment.smartshipment.entity.Shipment;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,7 +14,9 @@ import java.util.List;
 public class ShipmentController {
     private final ShipmentService shipmentService;
     @PostMapping("/shipments")
-    public Shipment createShipment(@RequestBody Shipment shipment) {
+    public Shipment createShipment(
+            @Valid @RequestBody Shipment shipment) {
+
         return shipmentService.createShipment(shipment);
     }
     @GetMapping("/shipments/{id}")
