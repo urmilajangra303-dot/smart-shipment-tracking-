@@ -1,6 +1,7 @@
 package com.shipment.smartshipment;
 
 import com.shipment.smartshipment.entity.Shipment;
+import com.shipment.smartshipment.entity.ShipmentStatus;
 import com.shipment.smartshipment.repository.ShipmentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -48,5 +49,45 @@ public class ShipmentService {
 
         return shipmentRepository.save(existingShipment);
     }
-}
+    public Shipment updateShipmentStatus(Long id, ShipmentStatus newStatus) {
+
+        Shipment shipment = shipmentRepository.findById(id)
+                .orElseThrow(() ->
+                        new ShipmentNotFoundException("Shipment not found with id : " + id));
+
+        ShipmentStatus currentStatus = shipment.getStatus();
+        if (!isValidTransition(currentStatus, newStatus)) {
+            throw new IllegalStateException(
+                    "Invalid status transition from "
+                            + currentStatus + " to " + newStatus);
+        }
+
+
+        shipment.setStatus(newStatus);
+
+        return shipmentRepository.save(shipment);
+    }
+    private boolean isValidTransition(
+            ShipmentStatus currentStatus,
+            ShipmentStatus newStatus) {
+
+        return switch (currentStatus) {
+
+            case CREATED ->
+                    newStatus == ShipmentStatus.IN_TRANSIT
+                            || newStatus == ShipmentStatus.CANCELLED;
+
+            case IN_TRANSIT ->
+                    newStatus == ShipmentStatus.OUT_FOR_DELIVERY
+                            || newStatus == ShipmentStatus.CANCELLED;
+
+            case OUT_FOR_DELIVERY ->
+                    newStatus == ShipmentStatus.DELIVERED
+                            || newStatus == ShipmentStatus.CANCELLED;
+
+            case DELIVERED, CANCELLED ->
+                    false;
+        };
+    }
+    }
 

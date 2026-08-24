@@ -6,6 +6,7 @@ import com.shipment.smartshipment.entity.Shipment;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+import com.shipment.smartshipment.dto.UpdateStatusRequest;
 
 import java.util.List;
 
@@ -39,4 +40,13 @@ public class ShipmentController {
 
         return shipmentService.updateShipment(id, shipment);
     }
+    @PatchMapping("/shipments/{id}/status")
+    public Shipment updateShipmentStatus(
+            @PathVariable Long id,
+            @RequestBody UpdateStatusRequest request) {
+
+        return shipmentService.updateShipmentStatus(id, request.getStatus());
+    }
+
+
 }
