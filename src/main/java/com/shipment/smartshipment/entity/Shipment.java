@@ -4,6 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import java.time.LocalDateTime;
+import jakarta.persistence.PrePersist;
 @Entity
 @Table(name = "shipments")
 @Getter
@@ -36,6 +37,11 @@ private String destination;
 private ShipmentStatus  status;
 
 private LocalDateTime createdAt;
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+    }
+
 
 
 }

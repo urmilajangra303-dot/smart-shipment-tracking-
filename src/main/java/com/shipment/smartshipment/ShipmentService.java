@@ -1,5 +1,6 @@
 package com.shipment.smartshipment;
 
+import com.shipment.smartshipment.dto.ShipmentRequest;
 import com.shipment.smartshipment.entity.Shipment;
 import com.shipment.smartshipment.entity.ShipmentStatus;
 import com.shipment.smartshipment.repository.ShipmentRepository;
@@ -8,14 +9,26 @@ import org.springframework.stereotype.Service;
 import com.shipment.smartshipment.exception.ShipmentNotFoundException;
 
 
-
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class ShipmentService {
     private final ShipmentRepository shipmentRepository ;
-   public  Shipment createShipment(Shipment shipment) {
+    public Shipment createShipment(ShipmentRequest request) {
+
+        Shipment shipment = new Shipment();
+
+        shipment.setTrackingNumber(request.getTrackingNumber());
+        shipment.setSenderName(request.getSenderName());
+        shipment.setReceiverName(request.getReceiverName());
+        shipment.setOrigin(request.getOrigin());
+        shipment.setDestination(request.getDestination());
+
+        shipment.setStatus(ShipmentStatus.CREATED);
+        shipment.setCreatedAt(LocalDateTime.now());
+
         return shipmentRepository.save(shipment);
     }
     public Shipment getShipmentById(Long id){
