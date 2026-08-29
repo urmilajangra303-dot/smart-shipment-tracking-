@@ -1,6 +1,7 @@
 package com.shipment.smartshipment;
 
 import com.shipment.smartshipment.dto.ShipmentRequest;
+import com.shipment.smartshipment.dto.ShipmentResponse;
 import com.shipment.smartshipment.entity.Shipment;
 import com.shipment.smartshipment.entity.ShipmentStatus;
 import com.shipment.smartshipment.repository.ShipmentRepository;
@@ -15,8 +16,9 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class ShipmentService {
-    private final ShipmentRepository shipmentRepository ;
-    public Shipment createShipment(ShipmentRequest request) {
+    private final ShipmentRepository shipmentRepository;
+
+    public ShipmentResponse createShipment(ShipmentRequest request) {
 
         Shipment shipment = new Shipment();
 
@@ -27,42 +29,95 @@ public class ShipmentService {
         shipment.setDestination(request.getDestination());
 
         shipment.setStatus(ShipmentStatus.CREATED);
-        shipment.setCreatedAt(LocalDateTime.now());
 
-        return shipmentRepository.save(shipment);
+        Shipment savedShipment = shipmentRepository.save(shipment);
+
+        return new ShipmentResponse(
+                savedShipment.getId(),
+                savedShipment.getTrackingNumber(),
+                savedShipment.getSenderName(),
+                savedShipment.getReceiverName(),
+                savedShipment.getOrigin(),
+                savedShipment.getDestination(),
+                savedShipment.getStatus(),
+                savedShipment.getCreatedAt()
+        );
     }
-    public Shipment getShipmentById(Long id){
-       return shipmentRepository.findById(id)
-               .orElseThrow(() ->
-                       new ShipmentNotFoundException("Shipment not found with id: " + id));
+
+    public ShipmentResponse getShipmentById(Long id) {
+
+        Shipment shipment = shipmentRepository.findById(id)
+                .orElseThrow(() ->
+                        new ShipmentNotFoundException(
+                                "Shipment not found with id: " + id
+                        ));
+
+        return new ShipmentResponse(
+                shipment.getId(),
+                shipment.getTrackingNumber(),
+                shipment.getSenderName(),
+                shipment.getReceiverName(),
+                shipment.getOrigin(),
+                shipment.getDestination(),
+                shipment.getStatus(),
+                shipment.getCreatedAt()
+        );
     }
-    public List<Shipment> getAllShipments(){
-       return shipmentRepository.findAll();
+
+    public List<ShipmentResponse> getAllShipments() {
+
+        return shipmentRepository.findAll()
+                .stream()
+                .map(shipment -> new ShipmentResponse(
+                        shipment.getId(),
+                        shipment.getTrackingNumber(),
+                        shipment.getSenderName(),
+                        shipment.getReceiverName(),
+                        shipment.getOrigin(),
+                        shipment.getDestination(),
+                        shipment.getStatus(),
+                        shipment.getCreatedAt()
+                ))
+                .toList();
     }
+
     public void deleteShipment(Long id) {
 
         if (!shipmentRepository.existsById(id)) {
-            throw new  ShipmentNotFoundException("Shipment not found with id :" + id);
+            throw new ShipmentNotFoundException("Shipment not found with id :" + id);
         }
 
         shipmentRepository.deleteById(id);
     }
-    public Shipment updateShipment(Long id, Shipment updatedShipment) {
+
+    public ShipmentResponse updateShipment(Long id, ShipmentRequest request) {
 
         Shipment existingShipment = shipmentRepository.findById(id)
                 .orElseThrow(() ->
-                        new ShipmentNotFoundException("Shipment not found with id: " + id));
+                        new ShipmentNotFoundException(
+                                "Shipment not found with id: " + id));
 
-        existingShipment.setTrackingNumber(updatedShipment.getTrackingNumber());
-        existingShipment.setSenderName(updatedShipment.getSenderName());
-        existingShipment.setReceiverName(updatedShipment.getReceiverName());
-        existingShipment.setOrigin(updatedShipment.getOrigin());
-        existingShipment.setDestination(updatedShipment.getDestination());
-        existingShipment.setStatus(updatedShipment.getStatus());
+        existingShipment.setTrackingNumber(request.getTrackingNumber());
+        existingShipment.setSenderName(request.getSenderName());
+        existingShipment.setReceiverName(request.getReceiverName());
+        existingShipment.setOrigin(request.getOrigin());
+        existingShipment.setDestination(request.getDestination());
 
-        return shipmentRepository.save(existingShipment);
+        Shipment savedShipment = shipmentRepository.save(existingShipment);
+
+        return new ShipmentResponse(
+                savedShipment.getId(),
+                savedShipment.getTrackingNumber(),
+                savedShipment.getSenderName(),
+                savedShipment.getReceiverName(),
+                savedShipment.getOrigin(),
+                savedShipment.getDestination(),
+                savedShipment.getStatus(),
+                savedShipment.getCreatedAt()
+        );
     }
-    public Shipment updateShipmentStatus(Long id, ShipmentStatus newStatus) {
+
+    public ShipmentResponse updateShipmentStatus(Long id, ShipmentStatus newStatus){
 
         Shipment shipment = shipmentRepository.findById(id)
                 .orElseThrow(() ->
@@ -78,29 +133,37 @@ public class ShipmentService {
 
         shipment.setStatus(newStatus);
 
-        return shipmentRepository.save(shipment);
+        Shipment savedShipment = shipmentRepository.save(shipment);
+
+        return new ShipmentResponse(
+                savedShipment.getId(),
+                savedShipment.getTrackingNumber(),
+                savedShipment.getSenderName(),
+                savedShipment.getReceiverName(),
+                savedShipment.getOrigin(),
+                savedShipment.getDestination(),
+                savedShipment.getStatus(),
+                savedShipment.getCreatedAt()
+        );
     }
+
     private boolean isValidTransition(
             ShipmentStatus currentStatus,
             ShipmentStatus newStatus) {
 
         return switch (currentStatus) {
 
-            case CREATED ->
-                    newStatus == ShipmentStatus.IN_TRANSIT
-                            || newStatus == ShipmentStatus.CANCELLED;
+            case CREATED -> newStatus == ShipmentStatus.IN_TRANSIT
+                    || newStatus == ShipmentStatus.CANCELLED;
 
-            case IN_TRANSIT ->
-                    newStatus == ShipmentStatus.OUT_FOR_DELIVERY
-                            || newStatus == ShipmentStatus.CANCELLED;
+            case IN_TRANSIT -> newStatus == ShipmentStatus.OUT_FOR_DELIVERY
+                    || newStatus == ShipmentStatus.CANCELLED;
 
-            case OUT_FOR_DELIVERY ->
-                    newStatus == ShipmentStatus.DELIVERED
-                            || newStatus == ShipmentStatus.CANCELLED;
+            case OUT_FOR_DELIVERY -> newStatus == ShipmentStatus.DELIVERED
+                    || newStatus == ShipmentStatus.CANCELLED;
 
-            case DELIVERED, CANCELLED ->
-                    false;
+            case DELIVERED, CANCELLED -> false;
         };
     }
-    }
+}
 

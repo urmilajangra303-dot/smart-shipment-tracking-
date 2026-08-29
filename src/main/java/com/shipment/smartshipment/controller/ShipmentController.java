@@ -3,6 +3,7 @@ package com.shipment.smartshipment.controller;
 
 import com.shipment.smartshipment.ShipmentService;
 import com.shipment.smartshipment.dto.ShipmentRequest;
+import com.shipment.smartshipment.dto.ShipmentResponse;
 import com.shipment.smartshipment.entity.Shipment;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -16,17 +17,17 @@ import java.util.List;
 public class ShipmentController {
     private final ShipmentService shipmentService;
     @PostMapping("/shipments")
-    public Shipment createShipment(
+    public ShipmentResponse createShipment(
             @Valid @RequestBody ShipmentRequest request) {
 
         return shipmentService.createShipment(request);
     }
     @GetMapping("/shipments/{id}")
-    public Shipment getShipmentById(@PathVariable Long id){
+    public ShipmentResponse getShipmentById(@PathVariable Long id){
         return shipmentService.getShipmentById(id);
 }
     @GetMapping("/shipments")
-    public List<Shipment> getAllShipments() {
+    public List<ShipmentResponse> getAllShipments() {
         return shipmentService.getAllShipments();
     }
     @DeleteMapping("/shipments/{id}")
@@ -35,14 +36,14 @@ public class ShipmentController {
         return "Shipment deleted successfully";
     }
     @PutMapping("/shipments/{id}")
-    public Shipment updateShipment(
+    public ShipmentResponse updateShipment(
             @PathVariable Long id,
-            @RequestBody Shipment shipment) {
+            @Valid @RequestBody ShipmentRequest request) {
 
-        return shipmentService.updateShipment(id, shipment);
+        return shipmentService.updateShipment(id, request);
     }
     @PatchMapping("/shipments/{id}/status")
-    public Shipment updateShipmentStatus(
+    public ShipmentResponse updateShipmentStatus(
             @PathVariable Long id,
             @RequestBody UpdateStatusRequest request) {
 
