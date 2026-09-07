@@ -4,6 +4,7 @@ import com.shipment.smartshipment.dto.ShipmentRequest;
 import com.shipment.smartshipment.dto.ShipmentResponse;
 import com.shipment.smartshipment.entity.Shipment;
 import com.shipment.smartshipment.entity.ShipmentStatus;
+import com.shipment.smartshipment.kafka.ShipmentKafkaProducer;
 import com.shipment.smartshipment.repository.ShipmentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -17,6 +18,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ShipmentService {
     private final ShipmentRepository shipmentRepository;
+    private final ShipmentKafkaProducer shipmentKafkaProducer;
 
     public ShipmentResponse createShipment(ShipmentRequest request) {
 
@@ -134,6 +136,11 @@ public class ShipmentService {
         shipment.setStatus(newStatus);
 
         Shipment savedShipment = shipmentRepository.save(shipment);
+        String message = "Shipment " + savedShipment.getTrackingNumber()
+                + " status changed from " + currentStatus
+                + " to " + newStatus;
+
+        shipmentKafkaProducer.sendNotification(message);
 
         return new ShipmentResponse(
                 savedShipment.getId(),
@@ -165,5 +172,7 @@ public class ShipmentService {
             case DELIVERED, CANCELLED -> false;
         };
     }
+
+
 }
 
