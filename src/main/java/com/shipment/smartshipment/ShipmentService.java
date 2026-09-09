@@ -4,6 +4,7 @@ import com.shipment.smartshipment.dto.ShipmentRequest;
 import com.shipment.smartshipment.dto.ShipmentResponse;
 import com.shipment.smartshipment.entity.Shipment;
 import com.shipment.smartshipment.entity.ShipmentStatus;
+import com.shipment.smartshipment.entity.ShipmentTrackingHistory;
 import com.shipment.smartshipment.kafka.ShipmentKafkaProducer;
 import com.shipment.smartshipment.repository.ShipmentRepository;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +20,7 @@ import java.util.List;
 public class ShipmentService {
     private final ShipmentRepository shipmentRepository;
     private final ShipmentKafkaProducer shipmentKafkaProducer;
+    private final ShipmentTrackingHistoryService trackingHistoryService;
 
     public ShipmentResponse createShipment(ShipmentRequest request) {
 
@@ -136,6 +138,15 @@ public class ShipmentService {
         shipment.setStatus(newStatus);
 
         Shipment savedShipment = shipmentRepository.save(shipment);
+        ShipmentTrackingHistory history = ShipmentTrackingHistory.builder()
+                .shipmentId(savedShipment.getId())
+                .oldStatus(currentStatus)
+                .newStatus(newStatus)
+                .build();
+
+        trackingHistoryService.saveHistory(history);
+
+
         String message = "Shipment " + savedShipment.getTrackingNumber()
                 + " status changed from " + currentStatus
                 + " to " + newStatus;
